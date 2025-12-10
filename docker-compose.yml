@@ -1,0 +1,35 @@
+services:
+  app:
+    build: .
+    # mejor sin container_name para no liar, pero si quieres puedes dejarlo
+    # container_name: php-postgres-app
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
+    environment:
+      DB_HOST: db # 👈 nombre del servicio de abajo
+      DB_PORT: 5432
+      DB_NAME: appdb
+      DB_USER: appuser
+      DB_PASS: secret123
+    volumes:
+      - .:/var/www/html
+
+  db:
+    image: postgres:16
+    # container_name: postgres-app-db   # opcional, lo podemos omitir
+    restart: always
+    environment:
+      POSTGRES_DB: appdb
+      POSTGRES_USER: appuser
+      POSTGRES_PASSWORD: secret123
+    # 👇 CAMBIO CLAVE: usar otro puerto externo (5433), interno sigue 5432
+    ports:
+      - "5433:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./sql/generacion_tablas.sql:/docker-entrypoint-initdb.d/generacion_tablas.sql
+
+volumes:
+  db-data:
